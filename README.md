@@ -77,13 +77,11 @@ MyDrive/
     ├── Val.csv
     └── Test.csv
 └──Plots
-    ├── Train.csv
-    ├── Val.csv
-    └── Test.csv
+    ├── answer_length.png
+    ├── Question_length.png
+    └── language_distribution.png
 
 ```
-
----
 
 ### 3. Open the Notebook in Google Colab
 
