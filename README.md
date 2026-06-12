@@ -41,7 +41,8 @@ wambaza/
     ├── answer_length.png
     ├── Question_length.png
     └── language_distribution.png
-
+    
+```
 
 > Backend, frontend, and model weight directories will be added in subsequent phases of development.
 
