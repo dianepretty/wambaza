@@ -37,11 +37,11 @@ wambaza/
 │   ├── Val.csv                         # HASH validation data (4,592 rows)
 │   └── Test.csv                        # HASH test data (1,836 rows)
 │
-└── plots/
-    ├── fig1_language_distribution.png  # Language distribution bar chart
-    ├── fig2_question_length.png        # Question length distribution
-    └── fig3_answer_length.png          # Answer length distribution
-```
+└──Plots
+    ├── answer_length.png
+    ├── Question_length.png
+    └── language_distribution.png
+
 
 > Backend, frontend, and model weight directories will be added in subsequent phases of development.
 
@@ -76,10 +76,6 @@ MyDrive/
     ├── Train.csv
     ├── Val.csv
     └── Test.csv
-└──Plots
-    ├── answer_length.png
-    ├── Question_length.png
-    └── language_distribution.png
 
 ```
 
