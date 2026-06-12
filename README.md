@@ -24,6 +24,10 @@ In Rwanda, teenage pregnancy has risen to 8% among girls aged 15 to 19, and in U
 
 ---
 
+## Links 
+1. [Github](https://github.com/dianepretty/wambaza.git)
+2. [Youtube](https://youtu.be/mn3zMR_GVVv)
+
 ## Current Project Structure
 
 ```
@@ -41,7 +45,7 @@ wambaza/
     ├── answer_length.png
     ├── Question_length.png
     └── language_distribution.png
-    
+
 ```
 
 > Backend, frontend, and model weight directories will be added in subsequent phases of development.
