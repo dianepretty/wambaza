@@ -1,3 +1,16 @@
+# Wambaza Frontend
+
+Next.js 14 frontend for the Wambaza project.
+
+Environment
+Create `.env.local` with `NEXT_PUBLIC_API_URL`.
+
+Run locally
+
+```bash
+npm install
+npm run dev
+```
 # Wambaza — Multilingual ASRH Question Answering Platform
 
 > **"Wambaza"** means *"you can ask me"* in Kinyarwanda.
