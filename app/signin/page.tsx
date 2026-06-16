@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import loginImg from '../../assets/images/login.jpg'
 
-type View = 'signin' | 'forgot'
+type View = 'signin' | 'forgot-email' | 'forgot-otp' | 'forgot-newpassword' | 'reset-done'
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
@@ -24,10 +24,17 @@ export default function SignIn() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [otp, setOtp] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showNewPassword, setShowNewPassword] = useState(false)
   const [error, setError] = useState('')
-  const [resetSent, setResetSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+
+  function resetForgotState() {
+    setOtp(''); setNewPassword(''); setConfirmPassword(''); setError('')
+  }
 
   async function handleSignIn(e: { preventDefault(): void }) {
     e.preventDefault()
@@ -47,13 +54,19 @@ export default function SignIn() {
         return
       }
 
-      // Check if user must change their password on first login
+      // Check user role and password status to route to the right dashboard
       const meRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
         credentials: 'include',
       })
       if (meRes.ok) {
         const me = await meRes.json()
-        router.push(me.must_change_password ? '/change-password' : '/publisher')
+        if (me.must_change_password) {
+          router.push('/change-password')
+        } else if (me.role === 'admin') {
+          router.push('/admin')
+        } else {
+          router.push('/publisher')
+        }
       } else {
         router.push('/publisher')
       }
@@ -64,10 +77,59 @@ export default function SignIn() {
     }
   }
 
-  // No forgot-password endpoint exists on the backend — show contact-admin message
-  function handleForgotPassword(e: { preventDefault(): void }) {
+  async function handleRequestOtp(e: { preventDefault(): void }) {
     e.preventDefault()
-    setResetSent(true)
+    setError('')
+    setLoading(true)
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      setView('forgot-otp')
+    } catch {
+      setError('Something went wrong. Please check your connection.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function handleVerifyOtp(e: { preventDefault(): void }) {
+    e.preventDefault()
+    setError('')
+    if (otp.length !== 6) {
+      setError('Enter the 6-digit code from your email.')
+      return
+    }
+    setView('forgot-newpassword')
+  }
+
+  async function handleResetPassword(e: { preventDefault(): void }) {
+    e.preventDefault()
+    setError('')
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match.')
+      return
+    }
+    setLoading(true)
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp, new_password: newPassword }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        setError(body.detail ?? 'Invalid or expired reset code.')
+        return
+      }
+      setView('reset-done')
+    } catch {
+      setError('Something went wrong. Please check your connection.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -191,7 +253,7 @@ export default function SignIn() {
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="block text-sm font-medium text-gray-700">Password</label>
-                    <button type="button" onClick={() => { setView('forgot'); setError('') }} className="text-xs text-purple-600 hover:text-purple-700 font-medium">
+                    <button type="button" onClick={() => { setView('forgot-email'); resetForgotState() }} className="text-xs text-purple-600 hover:text-purple-700 font-medium">
                       Forgot password?
                     </button>
                   </div>
@@ -223,27 +285,10 @@ export default function SignIn() {
                 </button>
               </form>
             </>
-          ) : resetSent ? (
+          ) : view === 'forgot-email' ? (
             <>
-              <div className="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center text-2xl mb-6">🔐</div>
-              <h1 className="text-3xl font-bold text-gray-900">Contact your admin</h1>
-              <p className="mt-2 text-sm text-gray-500">
-                Password resets are managed by your administrator. Please reach out to your admin and they will reset your password for you.
-              </p>
-              <button
-                onClick={() => { setView('signin'); setResetSent(false); setError('') }}
-                className="mt-8 w-full border border-gray-200 hover:border-purple-400 text-gray-700 font-semibold py-3 rounded-xl transition-colors duration-200 text-sm"
-              >
-                ← Back to sign in
-              </button>
-            </>
-          ) : (
-            <>
-              <button onClick={() => { setView('signin'); setError('') }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-purple-600 mb-8 transition-colors">
-                ← Back to sign in
-              </button>
               <h1 className="text-3xl font-bold text-gray-900">Forgot your password?</h1>
-              <p className="mt-2 text-sm text-gray-500">Password resets are handled by your administrator. Click below and we'll show you what to do.</p>
+              <p className="mt-2 text-sm text-gray-500">Enter your email and we'll send you a 6-digit code to reset your password.</p>
 
               {error && (
                 <div className="mt-4 flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">
@@ -252,7 +297,7 @@ export default function SignIn() {
                 </div>
               )}
 
-              <form onSubmit={handleForgotPassword} className="mt-8 space-y-5">
+              <form onSubmit={handleRequestOtp} className="mt-8 space-y-5">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
                   <input
@@ -266,11 +311,150 @@ export default function SignIn() {
                 </div>
                 <button
                   type="submit"
+                  disabled={loading}
+                  className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-colors duration-200"
+                >
+                  {loading ? 'Sending…' : 'Send reset code'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setView('signin'); setError('') }}
+                  className="w-full text-sm text-gray-500 hover:text-purple-600 transition-colors"
+                >
+                  ← Back to sign in
+                </button>
+              </form>
+            </>
+          ) : view === 'forgot-otp' ? (
+            <>
+              <h1 className="text-3xl font-bold text-gray-900">Enter your code</h1>
+              <p className="mt-2 text-sm text-gray-500">
+                We sent a 6-digit code to <span className="font-medium text-gray-800">{email}</span>. It expires in 10 minutes.
+              </p>
+
+              {error && (
+                <div className="mt-4 flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">
+                  <span className="mt-0.5">⚠</span>
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleVerifyOtp} className="mt-8 space-y-5">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">6-digit code</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    required
+                    maxLength={6}
+                    value={otp}
+                    onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
+                    placeholder="000000"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-center text-lg font-semibold tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-300 transition"
+                  />
+                </div>
+
+                <button
+                  type="submit"
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-xl transition-colors duration-200"
                 >
                   Continue
                 </button>
+
+                <button
+                  type="button"
+                  onClick={handleRequestOtp}
+                  disabled={loading}
+                  className="w-full text-purple-600 hover:text-purple-700 text-xs font-medium"
+                >
+                  {loading ? 'Resending…' : "Didn't get a code? Resend"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setView('signin'); resetForgotState() }}
+                  className="w-full text-sm text-gray-500 hover:text-purple-600 transition-colors"
+                >
+                  ← Back to sign in
+                </button>
               </form>
+            </>
+          ) : view === 'forgot-newpassword' ? (
+            <>
+              <h1 className="text-3xl font-bold text-gray-900">Set a new password</h1>
+              <p className="mt-2 text-sm text-gray-500">Choose a new password for your account.</p>
+
+              {error && (
+                <div className="mt-4 flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">
+                  <span className="mt-0.5">⚠</span>
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleResetPassword} className="mt-8 space-y-5">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">New password</label>
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      required
+                      value={newPassword}
+                      onChange={e => setNewPassword(e.target.value)}
+                      placeholder="Enter a new password"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-400 transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(v => !v)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <EyeIcon open={showNewPassword} />
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm new password</label>
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    required
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    placeholder="Re-enter your new password"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-400 transition"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-colors duration-200"
+                >
+                  {loading ? 'Resetting…' : 'Reset password'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setView('signin'); resetForgotState() }}
+                  className="w-full text-sm text-gray-500 hover:text-purple-600 transition-colors"
+                >
+                  ← Back to sign in
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center text-2xl mb-6">✅</div>
+              <h1 className="text-3xl font-bold text-gray-900">Password reset</h1>
+              <p className="mt-2 text-sm text-gray-500">
+                Your password has been updated. You can now sign in with your new password.
+              </p>
+              <button
+                onClick={() => { setView('signin'); resetForgotState() }}
+                className="mt-8 w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-xl transition-colors duration-200 text-sm"
+              >
+                Sign in
+              </button>
             </>
           )}
         </div>

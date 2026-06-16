@@ -6,6 +6,11 @@ import hero from '../assets/images/hero.jpg'
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 
+function readingTime(text?: string) {
+  const words = (text || '').trim().split(/\s+/).filter(Boolean).length
+  return Math.max(1, Math.round(words / 200))
+}
+
 export default function Home() {
   const { data, error } = useSWR(`${process.env.NEXT_PUBLIC_API_URL}/articles`, fetcher)
   const loading = !data && !error
@@ -25,8 +30,8 @@ export default function Home() {
               </span>
             </div>
             <nav className="hidden md:flex gap-6 mx-auto">
-              <a className="text-purple-700 font-semibold border-b-2 border-purple-700">Home</a>
-              <a className="text-gray-700 hover:text-purple-700">Stories</a>
+              <a href="/" className="text-purple-700 font-semibold border-b-2 border-purple-700">Home</a>
+              <a href="/stories" className="text-gray-700 hover:text-purple-700">Stories</a>
               <a href="/signin" className="text-gray-700 hover:text-purple-700">Sign in</a>
             </nav>
             <div className="flex items-center gap-3">
@@ -88,7 +93,7 @@ export default function Home() {
             <h2 className="text-2xl font-bold">Latest Stories</h2>
             <p className="text-sm text-gray-600">Real experiences from our community</p>
           </div>
-          <a className="text-purple-600">View All Stories →</a>
+          <a href="/stories" className="text-purple-600 hover:text-purple-700 font-medium">View All Stories →</a>
         </div>
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -134,7 +139,7 @@ export default function Home() {
           )}
 
           {!loading && articles.map((a: any) => (
-            <article key={a.id} className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-white">
+            <a key={a.id} href={`/articles/${a.id}`} className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-white block">
               <div className="relative h-48 overflow-hidden">
                 <img src={a.cover_image_url || 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=800&auto=format&fit=crop'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
@@ -144,11 +149,11 @@ export default function Home() {
                 <h3 className="font-bold text-gray-900 text-base leading-snug group-hover:text-purple-700 transition-colors">{a.title_en}</h3>
                 <p className="text-sm text-gray-500 mt-2 leading-relaxed line-clamp-2">{a.content_en?.slice(0, 120)}...</p>
                 <div className="mt-4 flex items-center justify-between">
-                  <span className="text-xs text-gray-400">5 min read</span>
+                  <span className="text-xs text-gray-400">{readingTime(a.content_en)} min read</span>
                   <span className="text-purple-600 text-xs font-semibold group-hover:underline">Read more →</span>
                 </div>
               </div>
-            </article>
+            </a>
           ))}
         </div>
       </section>
