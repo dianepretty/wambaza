@@ -1,131 +1,99 @@
-# Wambaza Frontend
-
-Next.js 14 frontend for the Wambaza project.
-
-Environment
-Create `.env.local` with `NEXT_PUBLIC_API_URL`.
-
-Run locally
-
-```bash
-npm install
-npm run dev
-```
 # Wambaza — Multilingual ASRH Question Answering Platform
 
 > **"Wambaza"** means *"you can ask me"* in Kinyarwanda.
 
-Wambaza is a multilingual AI-powered web platform that delivers accurate and linguistically inclusive adolescent sexual and reproductive health (ASRH) guidance in **English**, **Kinyarwanda**, and **Luganda**. It is designed to serve adolescents in Rwanda and Uganda who face cultural stigma, language barriers, and limited access to private health information.
+Wambaza is a multilingual platform that delivers accurate, linguistically inclusive adolescent sexual and reproductive health (ASRH) guidance in **English**, **Kinyarwanda**, and **Luganda**. It serves adolescents in Rwanda and Uganda who face cultural stigma, language barriers, and limited access to private health information.
 
 ---
 
 ## The Problem
 
-In Rwanda, teenage pregnancy has risen to 8% among girls aged 15 to 19, and in Uganda, adolescent girls account for approximately one third of all new HIV infections annually. Existing digital ASRH platforms are either rule-based, English-only, or geographically limited. No system currently provides intelligent, multilingual ASRH question answering in both Kinyarwanda and Luganda.
-
----
+In Rwanda, teenage pregnancy has risen to 8% among girls aged 15 to 19, and in Uganda, adolescent girls account for roughly one third of all new HIV infections annually. Existing digital ASRH platforms are either rule-based, English-only, or geographically limited — no system currently provides intelligent, multilingual ASRH question answering in both Kinyarwanda and Luganda.
 
 ## What Wambaza Does
 
-- Accepts ASRH questions anonymously in English, Kinyarwanda, or Luganda
-- Automatically detects the input language
-- Retrieves relevant content from a verified knowledge base using a LangChain RAG pipeline
-- Generates a grounded, medically accurate answer using a fine-tuned mT5-base model
-- Attaches a confidence score to every response
-- Redirects low-confidence responses to a qualified health professional
-- Allows Ministry of Health administrators/ Health professionals to publish verified ASRH articles
+- Publishes verified ASRH articles in English, Kinyarwanda, and Luganda, written and managed by approved publishers
+- Lets adolescents browse, search, and read articles without creating an account
+- Accepts ASRH questions anonymously through an AI chat assistant, with automatic language detection
+- Attaches a confidence score to every AI response, flagging low-confidence answers for follow-up with a professional
+- Gives admins tools to manage publisher accounts and moderate published content
+
+This repo is the **frontend** (Next.js 14 + Tailwind). The API lives in a separate [backend repo](https://github.com/dianepretty/wambaza_backend).
 
 ---
 
-## Links 
-1. [Github](https://github.com/dianepretty/wambaza.git)
-2. [Youtube](https://youtu.be/vKweA_lksHQ)
+## Frontend pages
 
-## Current Project Structure
+| Route | Purpose |
+|---|---|
+| `/` | Homepage — hero, Ask AI banner, latest articles, trust stats |
+| `/stories` | Full article catalogue with search |
+| `/articles/[id]` | Public article reader, per-language tabs |
+| `/ask` | AI chat assistant, no login required |
+| `/signin` | Publisher/admin sign-in, OTP-based forgot password |
+| `/change-password` | Forced password change on first login |
+| `/publisher` | Publisher dashboard — manage own articles (draft/published/archived) |
+| `/publisher/editor` | Article editor — multilingual fields, header image upload |
+| `/publisher/profile` | Publisher account settings (name/email) |
+| `/admin` | Admin dashboard — manage publishers and moderate all articles |
+| `/admin/profile` | Admin account settings (name/email) |
 
-```
-wambaza/
-│
-├── notebook/
-│   └── Wambaza_Model_Notebook.ipynb   # Data analysis, model training, evaluation
-│
-├── data/
-│   ├── Train.csv                       # HASH training data (21,444 rows)
-│   ├── Val.csv                         # HASH validation data (4,592 rows)
-│   └── Test.csv                        # HASH test data (1,836 rows)
-│
-└──Plots
-    ├── answer_length.png
-    ├── Question_length.png
-    └── language_distribution.png
-
-```
-
-> Backend, frontend, and model weight directories will be added in subsequent phases of development.
-
----
-
-## Environment Setup
+## Local setup
 
 ### Prerequisites
 
-- Python 3.10 or higher
-- A Google account (for Google Colab and Google Drive)
-- Google Colab Pro (for T4 GPU access during model training)
+- Node.js 18+
 
----
-
-### 1. Clone the Repository
+### Run locally
 
 ```bash
-git clone https://github.com/dianepretty/wambaza.git
-cd wambaza
+npm install
 ```
+
+Create `.env.local` in the project root:
+
+```
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+(point this at wherever the [backend](https://github.com/dianepretty/wambaza_backend) is running)
+
+```bash
+npm run dev
+```
+
+The app runs at `http://localhost:3000`.
 
 ---
 
-### 2. Set Up Google Drive
+## ASRH model & dataset
 
-Upload your data files to Google Drive in a folder called `Multilingual data`:
-
-```
-MyDrive/
-└── Multilingual data/
-    ├── Train.csv
-    ├── Val.csv
-    └── Test.csv
+The AI assistant's question-answering model is trained separately; the training notebook and data live in this repo for reference.
 
 ```
-
-### 3. Open the Notebook in Google Colab
-
-1. Go to [colab.research.google.com](https://colab.research.google.com)
-2. Open `Wambaza_Model_Notebook.ipynb`
-3. Change runtime to T4 GPU:
-```
-Runtime → Change runtime type → T4 GPU → Save
-```
-4. Run all cells in order from top to bottom
-
----
-
-### 4. Install Required Packages
-
-The first cell in the notebook installs everything automatically:
-
-```python
-!pip install -q pandas numpy matplotlib seaborn
-!pip install -q transformers sentencepiece accelerate torch
-!pip install -q rouge-score scikit-learn
-!pip install -q langchain chromadb sentence-transformers
-!pip install -q peft
+wambaza/
+├── app/                                 # Next.js frontend (see table above)
+├── components/                          # Shared UI components
+├── assets/                              # Images used by the frontend
+├── Wambaza_Model_Notebook.ipynb         # Data analysis, model training, evaluation
+├── Data/
+│   ├── Train.csv                        # HASH training data (21,444 rows)
+│   ├── Val.csv                          # HASH validation data (4,592 rows)
+│   └── Test.csv                         # HASH test data (1,836 rows)
+└── Plots/
+    ├── answer_length.png
+    ├── Question_length.png
+    └── language_distribution.png
 ```
 
----
+The model pipeline (retrieval + generation) is:
+- A LangChain RAG pipeline retrieving from a verified knowledge base
+- A fine-tuned mT5-base model generating grounded answers
+- A confidence score attached to every response, surfaced in the `/ask` page
 
-## Dataset
+### Dataset
 
-The training data comes from the **HASH Multilingual Health QA Challenge** (Zindi / ITU, 2026), a health-worker-validated corpus of ASRH question-answer pairs in English, Luganda, Akan, Amharic, and Kiswahili. We filter to English and Luganda only, then extend with a Kinyarwanda subset generated via machine translation.
+Training data comes from the **HASH Multilingual Health QA Challenge** (Zindi / ITU, 2026), a health-worker-validated corpus of ASRH question-answer pairs in English, Luganda, Akan, Amharic, and Kiswahili. We filter to English and Luganda, then extend with a Kinyarwanda subset generated via machine translation.
 
 | Split | Rows | Languages |
 |---|---|---|
@@ -133,13 +101,25 @@ The training data comes from the **HASH Multilingual Health QA Challenge** (Zind
 | Validation | 4,592 | English, Luganda |
 | Test | 1,836 | English, Luganda |
 
-> Kinyarwanda (~3,000 training pairs) will be added via the translation pipeline.
+> Kinyarwanda (~3,000 training pairs) will be added via the translation pipeline. The live `/model/ask` endpoint currently returns a placeholder response until the trained model is integrated into the backend.
+
+### Running the notebook
+
+1. Upload `Train.csv`, `Val.csv`, `Test.csv` to Google Drive under `MyDrive/Multilingual data/`
+2. Open `Wambaza_Model_Notebook.ipynb` in [Google Colab](https://colab.research.google.com)
+3. Set runtime to **T4 GPU** (`Runtime → Change runtime type → T4 GPU`)
+4. Run all cells top to bottom — the first cell installs all required packages
 
 ---
+
+## Links
+
+- [GitHub](https://github.com/dianepretty/wambaza)
+- [Backend repo](https://github.com/dianepretty/wambaza_backend)
+- [YouTube demo](https://youtu.be/vKweA_lksHQ)
 
 ## Author
 
 **Diane Pretty Ntakirutimana**
-BSc. Software Engineering
-African Leadership University
+BSc. Software Engineering, African Leadership University
 2026

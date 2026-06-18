@@ -1,6 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import ArticlePreviewModal from '../../components/ArticlePreviewModal'
 
 const API = process.env.NEXT_PUBLIC_API_URL
 
@@ -13,7 +14,25 @@ type User = {
   created_at: string
 }
 
-type ModalMode = 'create' | 'edit' | 'confirm-deactivate' | null
+type Article = {
+  id: number
+  title_en: string
+  title_kin?: string
+  title_lug?: string
+  content_en: string
+  content_kin?: string
+  content_lug?: string
+  cover_image_url?: string
+  status: string
+  publisher_id: number
+  publisher_name: string
+  publisher_email: string
+  updated_at: string
+}
+
+type View = 'publishers' | 'articles'
+type ArticleStatusFilter = 'all' | 'published' | 'draft' | 'archived'
+type ModalMode = 'create' | 'edit' | 'confirm-deactivate' | 'confirm-unpublish' | 'preview-article' | null
 
 function initials(name: string) {
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
@@ -28,7 +47,21 @@ function StatusBadge({ active }: { active: boolean }) {
   )
 }
 
+function ArticleStatusBadge({ status }: { status: string }) {
+  const styles: Record<string, string> = {
+    published: 'bg-green-50 text-green-700',
+    draft: 'bg-amber-50 text-amber-700',
+    archived: 'bg-gray-100 text-gray-500',
+  }
+  return (
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${styles[status] ?? 'bg-gray-100 text-gray-500'}`}>
+      {status}
+    </span>
+  )
+}
+
 export default function AdminDashboard() {
+  const [view, setView] = useState<View>('publishers')
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState<ModalMode>(null)
@@ -39,6 +72,14 @@ export default function AdminDashboard() {
   const [formLoading, setFormLoading] = useState(false)
   const [toast, setToast] = useState('')
   const [search, setSearch] = useState('')
+
+  const [articles, setArticles] = useState<Article[]>([])
+  const [articlesLoading, setArticlesLoading] = useState(true)
+  const [articleStatusFilter, setArticleStatusFilter] = useState<ArticleStatusFilter>('all')
+  const [articlePublisherFilter, setArticlePublisherFilter] = useState<number | 'all'>('all')
+  const [articleSearch, setArticleSearch] = useState('')
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null)
+
   const router = useRouter()
 
   async function loadUsers() {
@@ -50,7 +91,31 @@ export default function AdminDashboard() {
     }
   }
 
-  useEffect(() => { loadUsers() }, [])
+  async function loadArticles() {
+    setArticlesLoading(true)
+    try {
+      const res = await fetch(`${API}/articles/all`, { credentials: 'include' })
+      if (res.ok) setArticles(await res.json())
+    } finally {
+      setArticlesLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadUsers()
+    loadArticles()
+    // Verify access in the background; redirect away if not an admin, but don't block rendering.
+    fetch(`${API}/auth/me`, { credentials: 'include' })
+      .then(res => {
+        if (!res.ok) throw new Error()
+        return res.json()
+      })
+      .then(me => {
+        if (me.role !== 'admin') throw new Error()
+      })
+      .catch(() => router.push('/signin'))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function showToast(msg: string) {
     setToast(msg)
@@ -67,7 +132,7 @@ export default function AdminDashboard() {
     setSelected(user); setModal('edit')
   }
 
-  function closeModal() { setModal(null); setSelected(null) }
+  function closeModal() { setModal(null); setSelected(null); setSelectedArticle(null) }
 
   async function handleCreate(e: { preventDefault(): void }) {
     e.preventDefault()
@@ -136,6 +201,24 @@ export default function AdminDashboard() {
     closeModal()
   }
 
+  function openUnpublishConfirm(article: Article) {
+    setSelectedArticle(article)
+    setModal('confirm-unpublish')
+  }
+
+  function openArticlePreview(article: Article) {
+    setSelectedArticle(article)
+    setModal('preview-article')
+  }
+
+  async function confirmUnpublish() {
+    if (!selectedArticle) return
+    await fetch(`${API}/articles/${selectedArticle.id}/unpublish`, { method: 'PATCH', credentials: 'include' })
+    await loadArticles()
+    showToast(`"${selectedArticle.title_en}" has been unpublished.`)
+    closeModal()
+  }
+
   async function handleLogout() {
     await fetch(`${API}/auth/logout`, { method: 'POST', credentials: 'include' })
     router.push('/signin')
@@ -143,6 +226,18 @@ export default function AdminDashboard() {
 
   const active = users.filter(u => u.is_active).length
   const inactive = users.length - active
+
+  const publishers = users.filter(u => u.role === 'publisher')
+  const articleCounts = {
+    all: articles.length,
+    published: articles.filter(a => a.status === 'published').length,
+    draft: articles.filter(a => a.status === 'draft').length,
+    archived: articles.filter(a => a.status === 'archived').length,
+  }
+  const filteredArticles = articles
+    .filter(a => articleStatusFilter === 'all' || a.status === articleStatusFilter)
+    .filter(a => articlePublisherFilter === 'all' || a.publisher_id === articlePublisherFilter)
+    .filter(a => a.title_en.toLowerCase().includes(articleSearch.toLowerCase()))
   const filteredUsers = users.filter(u =>
     u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase())
   )
@@ -165,14 +260,29 @@ export default function AdminDashboard() {
 
         <nav className="flex-1 px-3 py-5 space-y-1">
           <div className="px-3 py-1.5 text-xs font-semibold text-purple-300/70 uppercase tracking-widest">Management</div>
-          <a className="relative flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/10 text-white font-semibold text-sm">
-            <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-orange-400" />
+          <button
+            onClick={() => setView('publishers')}
+            className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-sm transition-colors ${
+              view === 'publishers' ? 'bg-white/10 text-white' : 'text-purple-200 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            {view === 'publishers' && <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-orange-400" />}
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m9-4a4 4 0 11-8 0 4 4 0 018 0zm6 4a2 2 0 100-4 2 2 0 000 4zM3 16a2 2 0 100-4 2 2 0 000 4z"/></svg>
             Publishers
-          </a>
-          <a href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-purple-200 hover:bg-white/5 hover:text-white text-sm transition-colors">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-            Back to Site
+          </button>
+          <button
+            onClick={() => setView('articles')}
+            className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-sm transition-colors ${
+              view === 'articles' ? 'bg-white/10 text-white' : 'text-purple-200 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            {view === 'articles' && <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-orange-400" />}
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Articles
+          </button>
+          <a href="/admin/profile" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-purple-200 hover:bg-white/5 hover:text-white text-sm transition-colors">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            Profile
           </a>
         </nav>
 
@@ -200,20 +310,25 @@ export default function AdminDashboard() {
         {/* Topbar */}
         <header className="bg-white border-b px-8 py-5 flex items-center justify-between gap-4 shadow-sm">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Publishers</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Manage who can write and publish articles</p>
+            <h1 className="text-2xl font-bold text-gray-900">{view === 'publishers' ? 'Publishers' : 'Articles'}</h1>
+            <p className="text-sm text-gray-500 mt-0.5">
+              {view === 'publishers' ? 'Manage who can write and publish articles' : 'Review and moderate published content'}
+            </p>
           </div>
-          <button
-            onClick={openCreate}
-            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm hover:shadow-md shrink-0"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
-            Add Publisher
-          </button>
+          {view === 'publishers' && (
+            <button
+              onClick={openCreate}
+              className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm hover:shadow-md shrink-0"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
+              Add Publisher
+            </button>
+          )}
         </header>
 
         <main className="flex-1 p-8">
 
+          {view === 'publishers' && <>
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4 mb-6">
             {[
@@ -338,6 +453,121 @@ export default function AdminDashboard() {
               </table>
             )}
           </div>
+          </>}
+
+          {view === 'articles' && <>
+            {/* Filter tabs + publisher filter + search */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+              <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl p-1.5 w-fit">
+                {(['all', 'published', 'draft', 'archived'] as ArticleStatusFilter[]).map(key => (
+                  <button
+                    key={key}
+                    onClick={() => setArticleStatusFilter(key)}
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold capitalize transition-colors ${
+                      articleStatusFilter === key ? 'bg-purple-600 text-white' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    {key}
+                    <span className={`text-xs ${articleStatusFilter === key ? 'text-purple-200' : 'text-gray-400'}`}>{articleCounts[key]}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <select
+                  value={articlePublisherFilter}
+                  onChange={e => setArticlePublisherFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                  className="bg-white border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                >
+                  <option value="all">All publishers</option>
+                  {publishers.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+
+                <div className="relative max-w-xs">
+                  <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+                  </svg>
+                  <input
+                    value={articleSearch}
+                    onChange={e => setArticleSearch(e.target.value)}
+                    placeholder="Search articles"
+                    className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-400 transition"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Articles grid */}
+            {articlesLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="rounded-2xl overflow-hidden border border-gray-100 bg-white animate-pulse">
+                    <div className="h-40 bg-gray-200" />
+                    <div className="p-5 space-y-3">
+                      <div className="h-4 bg-gray-200 rounded-full w-3/4" />
+                      <div className="h-3 bg-gray-200 rounded-full w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredArticles.length === 0 ? (
+              <div className="bg-white rounded-2xl border p-12 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <p className="text-gray-500 text-sm">No articles match these filters.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredArticles.map(article => (
+                  <div key={article.id} className="rounded-2xl overflow-hidden border border-gray-100 bg-white shadow-sm hover:shadow-md transition-shadow">
+                    <div className="relative h-40 bg-gray-100">
+                      {article.cover_image_url ? (
+                        <img src={article.cover_image_url} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-300">
+                          <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        </div>
+                      )}
+                      <div className="absolute top-3 left-3"><ArticleStatusBadge status={article.status} /></div>
+                    </div>
+                    <div className="p-5">
+                      <h3 className="font-bold text-gray-900 leading-snug line-clamp-2">{article.title_en}</h3>
+                      <div className="mt-2 flex items-center gap-2">
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                          {initials(article.publisher_name)}
+                        </div>
+                        <span className="text-xs text-gray-500">{article.publisher_name}</span>
+                      </div>
+                      <p className="mt-2 text-xs text-gray-400">
+                        Updated {new Date(article.updated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
+
+                      <div className="mt-4 flex items-center gap-1.5 pt-3 border-t border-gray-50">
+                        <button
+                          onClick={() => openArticlePreview(article)}
+                          title="Preview"
+                          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:text-purple-700 hover:bg-purple-50 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        </button>
+                        {article.status === 'published' && (
+                          <button
+                            onClick={() => openUnpublishConfirm(article)}
+                            className="flex items-center gap-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors ml-auto"
+                          >
+                            Unpublish
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>}
         </main>
       </div>
 
@@ -444,6 +674,41 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Confirm Unpublish Modal */}
+      {modal === 'confirm-unpublish' && selectedArticle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeModal} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <div className="w-11 h-11 rounded-xl bg-red-100 text-red-600 flex items-center justify-center mb-4">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+            </div>
+            <h2 className="text-lg font-bold text-gray-900">Unpublish "{selectedArticle.title_en}"?</h2>
+            <p className="text-sm text-gray-500 mt-1.5">
+              This article will be moved back to drafts and removed from the public site immediately.
+            </p>
+            <div className="flex gap-3 pt-6">
+              <button
+                onClick={closeModal}
+                className="flex-1 border border-gray-200 text-gray-600 font-semibold py-2.5 rounded-xl text-sm hover:border-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmUnpublish}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors"
+              >
+                Unpublish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Article Preview Modal */}
+      {modal === 'preview-article' && selectedArticle && (
+        <ArticlePreviewModal article={selectedArticle} onClose={closeModal} />
       )}
 
       {/* Toast */}

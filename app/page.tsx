@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import useSWR from 'swr'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import hero from '../assets/images/hero.jpg'
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
@@ -16,6 +17,12 @@ export default function Home() {
   const loading = !data && !error
   const articles = Array.isArray(data) ? data.slice(0, 3) : []
   const [question, setQuestion] = useState('')
+  const router = useRouter()
+
+  function handleAskSubmit(e: { preventDefault(): void }) {
+    e.preventDefault()
+    router.push(question.trim() ? `/ask?q=${encodeURIComponent(question)}` : '/ask')
+  }
 
   return (
     <main className="min-h-screen bg-white text-gray-900">
@@ -35,7 +42,7 @@ export default function Home() {
               <a href="/signin" className="text-gray-700 hover:text-purple-700">Sign in</a>
             </nav>
             <div className="flex items-center gap-3">
-              <button className="bg-purple-600 text-white px-8 py-3 rounded-full font-semibold">Ask AI</button>
+              <a href="/ask" className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-full font-semibold transition-colors">Ask AI</a>
             </div>
           </div>
         </div>
@@ -58,7 +65,7 @@ export default function Home() {
               <h1 className="mt-4 text-3xl md:text-5xl font-bold leading-tight">Your <span className="text-purple-300">Health</span>, Your Future</h1>
               <p className="mt-4 text-base md:text-lg lg:text-xl max-w-md">Empathetic, reliable, and expert health information tailored for adolescents. Discover your path to well-being with Wambaza.</p>
               <div className="mt-6 flex gap-3">
-                <button className="bg-purple-600 text-white px-6 py-3 rounded-full">Explore Health Topics →</button>
+                <a href="/stories" className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-full transition-colors">Explore Health Topics →</a>
               </div>
             </div>
           </div>
@@ -69,19 +76,23 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-6 -mt-20 relative z-10">
         <div className="bg-white shadow-lg rounded-lg p-6 flex flex-col md:flex-row items-center gap-6">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center text-white">💬</div>
+            <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center text-white">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-semibold">Ask anything about your health</h3>
             <p className="text-sm text-gray-600">Our AI assistant is here to provide safe, private, and accurate health information.</p>
           </div>
           <div className="w-full md:w-1/2">
-            <div className="flex gap-2">
+            <form onSubmit={handleAskSubmit} className="flex gap-2">
               <input value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Type a question in Kinyarwanda, Luganda or English" className="flex-1 border rounded-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-600 placeholder:text-sm" />
-              <button className="bg-purple-600 text-white px-4 py-2 rounded-full flex items-center justify-center hover:shadow-lg hover:bg-purple-700 transition-all duration-200">
+              <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded-full flex items-center justify-center hover:shadow-lg hover:bg-purple-700 transition-all duration-200">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16.6915026,12.4744748 L3.50612381,13.2599618 C3.19218622,13.2599618 3.03521743,13.4170592 3.03521743,13.5741566 L1.15159189,20.0151496 C0.8376543,20.8006365 0.99,21.89 1.77946707,22.52 C2.41,22.99 3.50612381,23.1 4.13399899,22.8429026 L21.714504,14.0454487 C22.6563168,13.5741566 23.1272231,12.6315722 22.6563168,11.6889879 L4.13399899,1.16346272 C3.34915502,0.9 2.40734225,1.00636533 1.77946707,1.4776575 C0.994623095,2.10604706 0.837654326,3.0486314 1.15159189,3.99701575 L3.03521743,10.4380088 C3.03521743,10.5951061 3.34915502,10.5951061 3.50612381,10.5951061 L16.6915026,11.3805931 C16.6915026,11.3805931 17.1624089,11.3805931 17.1624089,11.88 C17.1624089,12.3813069 16.6915026,12.4744748 16.6915026,12.4744748 Z"/></svg>
               </button>
-            </div>
+            </form>
           </div>
         </div>
       </section>

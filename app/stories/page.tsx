@@ -2,7 +2,7 @@
 import React, { useState } from 'react'
 import useSWR from 'swr'
 import Image from 'next/image'
-import hero from '../../assets/images/hero.jpg'
+import hero from '../../assets/images/articles_hero.jpg'
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 
@@ -68,7 +68,7 @@ export default function Stories() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search articles by title or topic"
-              className="w-full bg-white shadow-lg rounded-full pl-14 pr-5 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder:text-gray-400 transition"
+              className="w-full bg-white shadow-lg rounded-full pl-14 pr-5 py-4 text-sm outline-none focus:outline-none placeholder:text-gray-400 transition"
             />
           </div>
         </div>
