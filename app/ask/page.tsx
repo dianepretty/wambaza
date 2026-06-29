@@ -54,16 +54,22 @@ export default function Ask() {
   const [question, setQuestion] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const chatRef = useRef<HTMLDivElement>(null)
+  const initialAsked = useRef(false)
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const el = chatRef.current
+    if (el) el.scrollTop = el.scrollHeight
   }, [messages, loading])
 
   useEffect(() => {
+    if (initialAsked.current) return
     const q = searchParams.get('q')
-    if (q) ask(q)
+    if (q) {
+      initialAsked.current = true
+      ask(q)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -93,7 +99,7 @@ export default function Ask() {
   }
 
   return (
-    <div className="min-h-screen bg-white relative overflow-hidden flex flex-col">
+    <div className="h-screen bg-white relative overflow-hidden flex flex-col">
 
       {/* Soft background blobs */}
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-purple-200 rounded-full blur-3xl opacity-30 pointer-events-none" />
@@ -101,7 +107,7 @@ export default function Ask() {
       <div className="absolute top-1/3 right-0 w-72 h-72 bg-purple-100 rounded-full blur-3xl opacity-40 pointer-events-none" />
 
       {/* Top nav */}
-      <header className="relative z-10 border-b bg-white/80 backdrop-blur-sm">
+      <header className="relative z-10 border-b bg-white/80 backdrop-blur-sm shrink-0">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2 text-2xl font-black text-purple-700 tracking-wide">
             <svg className="w-6 h-6 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.3.3 0 1 0 .2.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg>
@@ -111,8 +117,9 @@ export default function Ask() {
         </div>
       </header>
 
-      {/* Chat area */}
-      <main className="relative z-10 flex-1 max-w-2xl w-full mx-auto px-6 py-8 flex flex-col">
+      {/* Chat area — scroll container */}
+      <main ref={chatRef} className="relative z-10 flex-1 min-h-0 overflow-y-auto">
+        <div className="max-w-2xl w-full mx-auto px-6 py-8 flex flex-col min-h-full">
 
         {messages.length === 0 && (
           <div className="flex-1 flex flex-col items-center justify-center text-center py-6">
@@ -148,7 +155,7 @@ export default function Ask() {
         )}
 
         {messages.length > 0 && (
-          <div className="flex-1 space-y-4 pb-4">
+          <div className="space-y-4 pb-4">
             {messages.map((m, i) => (
               <div key={i} className={`flex items-end gap-2 ${m.from === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {m.from === 'bot' && <BotAvatar />}
@@ -176,13 +183,14 @@ export default function Ask() {
                 </div>
               </div>
             )}
-            <div ref={bottomRef} />
+
           </div>
         )}
+        </div>
       </main>
 
       {/* Input bar */}
-      <div className="relative z-10 bg-white/90 backdrop-blur-sm border-t">
+      <div className="relative z-10 bg-white/90 backdrop-blur-sm border-t shrink-0">
         <div className="max-w-2xl mx-auto px-6 py-4">
           <form onSubmit={handleSubmit} className="flex gap-2">
             <input
