@@ -104,7 +104,7 @@ export default function PublisherDashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="h-screen bg-gray-50 flex overflow-hidden">
 
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-64 bg-gradient-to-b from-purple-800 to-purple-950 shrink-0 shadow-xl shadow-purple-900/30 z-10">
@@ -154,7 +154,7 @@ export default function PublisherDashboard() {
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* Topbar */}
-        <header className="bg-white border-b px-8 py-5 flex items-center justify-between gap-4 shadow-sm">
+        <header className="bg-white border-b px-8 py-5 flex items-center justify-between gap-4 shadow-sm shrink-0">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">My Articles</h1>
             <p className="text-sm text-gray-500 mt-0.5">Write and manage your health articles</p>
@@ -168,7 +168,7 @@ export default function PublisherDashboard() {
           </a>
         </header>
 
-        <main className="flex-1 p-8">
+        <main className="flex-1 overflow-y-auto p-8">
 
           {/* Filter tabs + search */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

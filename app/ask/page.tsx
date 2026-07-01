@@ -14,7 +14,7 @@ const SUGGESTIONS = [
 const TRUST_BADGES = [
   { label: 'Private & anonymous', icon: 'M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z' },
   { label: 'Confidence-scored', icon: 'M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z' },
-  { label: 'EN · KIN · LUG', icon: 'M21 12a9 9 0 11-18 0 9 9 0 0118 0zM3.6 9h16.8M3.6 15h16.8M11.5 3a17 17 0 000 18M12.5 3a17 17 0 010 18' },
+  { label: 'KIN · LUG · SW · EN', icon: 'M21 12a9 9 0 11-18 0 9 9 0 0118 0zM3.6 9h16.8M3.6 15h16.8M11.5 3a17 17 0 000 18M12.5 3a17 17 0 010 18' },
 ]
 
 function BotAvatar() {
@@ -125,7 +125,7 @@ export default function Ask() {
           <div className="flex-1 flex flex-col items-center justify-center text-center py-6">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Ask me anything about your health</h1>
             <p className="mt-2 text-gray-500 max-w-md">
-              Safe, judgment-free answers in English, Kinyarwanda, or Luganda — whenever you need them.
+              Safe, judgment-free answers in Kinyarwanda, Luganda, Swahili, or English — whenever you need them.
             </p>
 
             <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
@@ -196,7 +196,7 @@ export default function Ask() {
             <input
               value={question}
               onChange={e => setQuestion(e.target.value)}
-              placeholder="Type a question in Kinyarwanda, Luganda or English"
+              placeholder="Type a question in Kinyarwanda, Luganda, Swahili or English"
               className="flex-1 border border-gray-200 rounded-full px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-400 transition"
             />
             <button

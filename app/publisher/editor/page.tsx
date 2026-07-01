@@ -4,22 +4,25 @@ import { useSearchParams, useRouter } from 'next/navigation'
 
 const API = process.env.NEXT_PUBLIC_API_URL
 
-type Lang = 'en' | 'kin' | 'lug'
+type Lang = 'kin' | 'lug' | 'sw' | 'en'
 
 const LANGS: { key: Lang; label: string }[] = [
-  { key: 'en', label: 'English' },
   { key: 'kin', label: 'Kinyarwanda' },
   { key: 'lug', label: 'Luganda' },
+  { key: 'sw', label: 'Swahili' },
+  { key: 'en', label: 'English' },
 ]
 
 export default function Editor() {
-  const [activeLang, setActiveLang] = useState<Lang>('en')
+  const [activeLang, setActiveLang] = useState<Lang>('kin')
   const [titleEn, setTitleEn] = useState('')
   const [contentEn, setContentEn] = useState('')
   const [titleKin, setTitleKin] = useState('')
   const [contentKin, setContentKin] = useState('')
   const [titleLug, setTitleLug] = useState('')
   const [contentLug, setContentLug] = useState('')
+  const [titleSw, setTitleSw] = useState('')
+  const [contentSw, setContentSw] = useState('')
   const [cover, setCover] = useState('')
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState<'draft' | 'publish' | null>(null)
@@ -38,15 +41,18 @@ export default function Editor() {
         setContentKin(a.content_kin || '')
         setTitleLug(a.title_lug || '')
         setContentLug(a.content_lug || '')
+        setTitleSw(a.title_sw || '')
+        setContentSw(a.content_sw || '')
         setCover(a.cover_image_url || '')
       })
     }
   }, [id])
 
   const fields: Record<Lang, { title: string; setTitle: (v: string) => void; content: string; setContent: (v: string) => void }> = {
-    en: { title: titleEn, setTitle: setTitleEn, content: contentEn, setContent: setContentEn },
     kin: { title: titleKin, setTitle: setTitleKin, content: contentKin, setContent: setContentKin },
     lug: { title: titleLug, setTitle: setTitleLug, content: contentLug, setContent: setContentLug },
+    sw:  { title: titleSw,  setTitle: setTitleSw,  content: contentSw,  setContent: setContentSw  },
+    en:  { title: titleEn,  setTitle: setTitleEn,  content: contentEn,  setContent: setContentEn  },
   }
 
   async function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -80,6 +86,7 @@ export default function Editor() {
       title_en: titleEn, content_en: contentEn,
       title_kin: titleKin || null, content_kin: contentKin || null,
       title_lug: titleLug || null, content_lug: contentLug || null,
+      title_sw:  titleSw  || null, content_sw:  contentSw  || null,
       cover_image_url: cover || null,
     }
     const url = id ? `${API}/articles/${id}` : `${API}/articles`
@@ -162,7 +169,7 @@ export default function Editor() {
 
       <main className="max-w-3xl mx-auto px-6 py-10">
         <h1 className="text-2xl font-bold text-gray-900">{id ? 'Edit Article' : 'New Article'}</h1>
-        <p className="mt-1 text-sm text-gray-500">Write in English, then add Kinyarwanda and Luganda translations.</p>
+        <p className="mt-1 text-sm text-gray-500">Add translations in Kinyarwanda, Luganda, and Swahili. English is required.</p>
 
         {error && (
           <div className="mt-4 flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">

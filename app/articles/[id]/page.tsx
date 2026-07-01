@@ -1,17 +1,18 @@
 "use client"
 import React, { useState, useEffect } from 'react'
 
-type Lang = 'en' | 'kin' | 'lug'
+type Lang = 'kin' | 'lug' | 'sw' | 'en'
 
 const LANGS: { key: Lang; label: string }[] = [
-  { key: 'en', label: 'English' },
   { key: 'kin', label: 'Kinyarwanda' },
   { key: 'lug', label: 'Luganda' },
+  { key: 'sw', label: 'Swahili' },
+  { key: 'en', label: 'English' },
 ]
 
 export default function Article({ params }: { params: { id: string } }) {
   const [article, setArticle] = useState<any>(null)
-  const [lang, setLang] = useState<Lang>('en')
+  const [lang, setLang] = useState<Lang>('kin')
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/articles/${params.id}`).then(r => r.json()).then(setArticle)
@@ -29,13 +30,16 @@ export default function Article({ params }: { params: { id: string } }) {
   }
 
   const available: Record<Lang, boolean> = {
-    en: Boolean(article.title_en && article.content_en),
     kin: Boolean(article.title_kin && article.content_kin),
     lug: Boolean(article.title_lug && article.content_lug),
+    sw:  Boolean(article.title_sw  && article.content_sw),
+    en:  Boolean(article.title_en  && article.content_en),
   }
 
-  const title = lang === 'en' ? article.title_en : lang === 'kin' ? article.title_kin : article.title_lug
-  const content = lang === 'en' ? article.content_en : lang === 'kin' ? article.content_kin : article.content_lug
+  const titleMap: Record<Lang, string> = { kin: article.title_kin, lug: article.title_lug, sw: article.title_sw, en: article.title_en }
+  const contentMap: Record<Lang, string> = { kin: article.content_kin, lug: article.content_lug, sw: article.content_sw, en: article.content_en }
+  const title = titleMap[lang]
+  const content = contentMap[lang]
   const wordCount = (article.content_en || '').trim().split(/\s+/).filter(Boolean).length
   const readingMinutes = Math.max(1, Math.round(wordCount / 200))
 
