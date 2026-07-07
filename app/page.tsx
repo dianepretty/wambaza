@@ -180,9 +180,9 @@ export default function Home() {
             {/* gradient border wrapper technique: 1px gradient bg + inner bg */}
             <div className="p-[1px] rounded-2xl bg-gradient-to-br from-orange-400 via-pink-500 to-purple-500 hover:from-orange-300 hover:to-purple-400 transition-all duration-300">
               <div className="bg-purple-800/90 backdrop-blur-sm rounded-2xl p-6 text-center h-full">
-                <div className="text-3xl md:text-4xl font-extrabold text-orange-400">✦</div>
-                <div className="mt-3 text-white font-semibold text-sm">CONFIDENCE SCORING</div>
-                <p className="mt-2 text-purple-200 text-xs leading-relaxed">Every answer is scored — the AI tells you when it's unsure so you always know how much to trust a response.</p>
+                <div className="text-3xl md:text-4xl font-extrabold text-orange-400">4</div>
+                <div className="mt-3 text-white font-semibold text-sm">LANGUAGES</div>
+                <p className="mt-2 text-purple-200 text-xs leading-relaxed">Ask your questions in Kinyarwanda, Luganda, Swahili, or English.</p>
               </div>
             </div>
             <div className="p-[1px] rounded-2xl bg-gradient-to-br from-orange-400 via-pink-500 to-purple-500 hover:from-orange-300 hover:to-purple-400 transition-all duration-300">

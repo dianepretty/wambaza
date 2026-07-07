@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 
-type Message = { from: 'user' | 'bot'; text: string; confidence?: number }
+type Message = { from: 'user' | 'bot'; text: string }
 
 const SUGGESTIONS = [
   { q: 'What is puberty?', icon: 'M5 13l4 4L19 7' },
@@ -13,7 +13,6 @@ const SUGGESTIONS = [
 
 const TRUST_BADGES = [
   { label: 'Private & anonymous', icon: 'M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z' },
-  { label: 'Confidence-scored', icon: 'M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z' },
   { label: 'KIN · LUG · SW · EN', icon: 'M21 12a9 9 0 11-18 0 9 9 0 0118 0zM3.6 9h16.8M3.6 15h16.8M11.5 3a17 17 0 000 18M12.5 3a17 17 0 010 18' },
 ]
 
@@ -26,27 +25,6 @@ function BotAvatar() {
         <circle cx="20" cy="10" r="2"/>
       </svg>
     </div>
-  )
-}
-
-function ConfidenceBadge({ confidence }: { confidence: number }) {
-  const pct = Math.round(confidence * 100)
-  const tier = pct >= 75 ? 'high' : pct >= 45 ? 'medium' : 'low'
-  const styles: Record<string, string> = {
-    high: 'bg-green-50 text-green-700',
-    medium: 'bg-amber-50 text-amber-700',
-    low: 'bg-red-50 text-red-700',
-  }
-  const labels: Record<string, string> = {
-    high: 'Confident',
-    medium: 'Somewhat confident',
-    low: "Not very sure — please verify with a professional",
-  }
-  return (
-    <span className={`inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full text-[11px] font-semibold ${styles[tier]}`}>
-      <span className="w-1.5 h-1.5 rounded-full bg-current" />
-      {labels[tier]} · {pct}%
-    </span>
   )
 }
 
@@ -85,7 +63,7 @@ export default function Ask() {
         body: JSON.stringify({ question: q, language: 'auto' }),
       })
       const data = await res.json()
-      setMessages(prev => [...prev, { from: 'bot', text: data.answer, confidence: data.confidence }])
+      setMessages(prev => [...prev, { from: 'bot', text: data.answer }])
     } catch {
       setMessages(prev => [...prev, { from: 'bot', text: "Sorry, something went wrong. Please try again." }])
     } finally {
@@ -167,9 +145,6 @@ export default function Ask() {
                   }`}
                 >
                   {m.text}
-                  {m.from === 'bot' && typeof m.confidence === 'number' && (
-                    <ConfidenceBadge confidence={m.confidence} />
-                  )}
                 </div>
               </div>
             ))}
