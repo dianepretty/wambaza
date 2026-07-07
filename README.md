@@ -15,7 +15,6 @@ In Rwanda, teenage pregnancy has risen to 8% among girls aged 15 to 19, and in U
 - Publishes verified ASRH articles in Kinyarwanda, Luganda, Swahili, and English, written and managed by approved publishers
 - Lets adolescents browse, search, and read articles without creating an account
 - Accepts ASRH questions anonymously through an AI chat assistant, with automatic language detection
-- Attaches a confidence score to every AI response, flagging low-confidence answers for follow-up with a professional
 - Gives admins tools to manage publisher accounts and moderate published content
 
 This repo is the **frontend** (Next.js 14 + Tailwind). The API lives in the [backend repo](https://github.com/dianepretty/wambaza_backend).
@@ -37,6 +36,26 @@ This repo is the **frontend** (Next.js 14 + Tailwind). The API lives in the [bac
 | `/publisher/profile` | Publisher account settings (name/email) |
 | `/admin` | Admin dashboard — manage publishers and moderate all articles |
 | `/admin/profile` | Admin account settings (name/email) |
+
+## Screenshots
+
+![](assets/screenshots/Screenshot%202026-07-07%20at%209.18.33%20PM.png)
+
+![](assets/screenshots/Screenshot%202026-07-07%20at%209.19.02%20PM.png)
+
+![](assets/screenshots/Screenshot%202026-07-07%20at%209.19.26%20PM.png)
+
+![](assets/screenshots/Screenshot%202026-07-07%20at%209.22.18%20PM.png)
+
+![](assets/screenshots/Screenshot%202026-07-07%20at%209.23.12%20PM.png)
+
+![](assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48%20%282%29.jpeg)
+
+![](assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48%20%283%29.jpeg)
+
+![](assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48.jpeg)
+
+![](assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48%20%281%29.jpeg)
 
 ## Local setup
 
@@ -70,7 +89,7 @@ The app runs at `http://localhost:3000`.
 
 The AI assistant is powered by `DianePretty/Wambaza_2.0`, a fine-tuned multilingual text-generation model deployed as a [HuggingFace Space](https://huggingface.co/spaces/DianePretty/Wambaza-API).
 
-The `/ask` page calls the backend `/model/ask` endpoint, which forwards the question to the Space via the Gradio REST API and returns an answer with a confidence score.
+The `/ask` page calls the backend `/model/ask` endpoint, which forwards the question to the Space via the Gradio REST API and returns an answer.
 
 ### Model training
 
