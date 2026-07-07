@@ -1,7 +1,6 @@
 "use client"
 import React, { useState } from 'react'
 import useSWR from 'swr'
-import Image from 'next/image'
 import hero from '../../assets/images/articles_hero.jpg'
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
@@ -49,7 +48,7 @@ export default function Stories() {
       {/* Header banner */}
       <section className="relative">
         <div className="h-72 md:h-96 w-full relative">
-          <Image src={hero} alt="Wambaza stories" fill className="object-cover" priority />
+          <img src={hero.src} alt="Wambaza stories" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-br from-purple-900/70 via-black/30 to-black/60" />
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
             <div className="inline-block bg-white/20 text-white text-xs px-3 py-1 rounded-full mb-4">REAL STORIES, REAL ANSWERS</div>
