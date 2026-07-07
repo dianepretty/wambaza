@@ -39,23 +39,7 @@ This repo is the **frontend** (Next.js 14 + Tailwind). The API lives in the [bac
 
 ## Screenshots
 
-![](assets/screenshots/Screenshot%202026-07-07%20at%209.18.33%20PM.png)
-
-![](assets/screenshots/Screenshot%202026-07-07%20at%209.19.02%20PM.png)
-
-![](assets/screenshots/Screenshot%202026-07-07%20at%209.19.26%20PM.png)
-
-![](assets/screenshots/Screenshot%202026-07-07%20at%209.22.18%20PM.png)
-
-![](assets/screenshots/Screenshot%202026-07-07%20at%209.23.12%20PM.png)
-
-![](assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48%20%282%29.jpeg)
-
-![](assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48%20%283%29.jpeg)
-
-![](assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48.jpeg)
-
-![](assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48%20%281%29.jpeg)
+<img src="assets/screenshots/Screenshot%202026-07-07%20at%209.18.33%20PM.png" width="250" /> <img src="assets/screenshots/Screenshot%202026-07-07%20at%209.19.02%20PM.png" width="250" /> <img src="assets/screenshots/Screenshot%202026-07-07%20at%209.19.26%20PM.png" width="250" /> <img src="assets/screenshots/Screenshot%202026-07-07%20at%209.22.18%20PM.png" width="250" /> <img src="assets/screenshots/Screenshot%202026-07-07%20at%209.23.12%20PM.png" width="250" /> <img src="assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48%20%282%29.jpeg" width="150" /> <img src="assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48%20%283%29.jpeg" width="150" /> <img src="assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48.jpeg" width="150" /> <img src="assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48%20%281%29.jpeg" width="150" />
 
 ## Local setup
 
