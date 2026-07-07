@@ -152,7 +152,7 @@ export default function Home() {
           {!loading && articles.map((a: any) => (
             <a key={a.id} href={`/articles/${a.id}`} className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-white block">
               <div className="relative h-48 overflow-hidden">
-                <img src={a.cover_image_url || 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=800&auto=format&fit=crop'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <img src={a.cover_image_url?.startsWith('http') ? a.cover_image_url : 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=800&auto=format&fit=crop'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                 <span className="absolute top-3 left-3 bg-purple-600 text-white text-xs font-semibold px-3 py-1 rounded-full">Health</span>
               </div>

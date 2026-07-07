@@ -57,7 +57,7 @@ export default function Article({ params }: { params: { id: string } }) {
 
       {/* Hero */}
       <div className="relative h-72 md:h-[28rem] w-full">
-        {article.cover_image_url ? (
+        {article.cover_image_url?.startsWith('http') ? (
           <img src={article.cover_image_url} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-purple-700 to-purple-900" />
