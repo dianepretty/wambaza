@@ -103,7 +103,7 @@ export default function Ask() {
           <div className="flex-1 flex flex-col items-center justify-center text-center py-6">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Ask me anything about your health</h1>
             <p className="mt-2 text-gray-500 max-w-md">
-              Safe, judgment-free answers in Kinyarwanda, Luganda, Swahili, or English — whenever you need them.
+              Safe, judgment-free answers in Kinyarwanda, Luganda, or English — whenever you need them.
             </p>
 
             <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
@@ -171,7 +171,7 @@ export default function Ask() {
             <input
               value={question}
               onChange={e => setQuestion(e.target.value)}
-              placeholder="Type a question in Kinyarwanda, Luganda, Swahili or English"
+              placeholder="Type a question in Kinyarwanda, Luganda or English"
               className="flex-1 border border-gray-200 rounded-full px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-400 transition"
             />
             <button

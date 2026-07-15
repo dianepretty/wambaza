@@ -2,17 +2,17 @@
 
 > **"Wambaza"** means *"you can ask me"* in Kinyarwanda.
 
-Wambaza is a multilingual platform that delivers accurate, linguistically inclusive adolescent sexual and reproductive health (ASRH) guidance in **Kinyarwanda**, **Luganda**, **Swahili**, and **English**. It serves adolescents in Rwanda, Uganda, and East Africa who face cultural stigma, language barriers, and limited access to private health information.
+Wambaza is a multilingual platform that delivers accurate, linguistically inclusive adolescent sexual and reproductive health (ASRH) guidance in **Kinyarwanda**, **Luganda**, and **English**. It serves adolescents in Rwanda, Uganda, and East Africa who face cultural stigma, language barriers, and limited access to private health information.
 
 ---
 
 ## The Problem
 
-In Rwanda, teenage pregnancy has risen to 8% among girls aged 15 to 19, and in Uganda, adolescent girls account for roughly one third of all new HIV infections annually. Existing digital ASRH platforms are either rule-based, English-only, or geographically limited — no system currently provides intelligent, multilingual ASRH question answering in Kinyarwanda, Luganda, and Swahili.
+In Rwanda, teenage pregnancy has risen to 8% among girls aged 15 to 19, and in Uganda, adolescent girls account for roughly one third of all new HIV infections annually. Existing digital ASRH platforms are either rule-based, English-only, or geographically limited — no system currently provides intelligent, multilingual ASRH question answering in Kinyarwanda and Luganda.
 
 ## What Wambaza Does
 
-- Publishes verified ASRH articles in Kinyarwanda, Luganda, Swahili, and English, written and managed by approved publishers
+- Publishes verified ASRH articles in Kinyarwanda, Luganda, and English, written and managed by approved publishers
 - Lets adolescents browse, search, and read articles without creating an account
 - Accepts ASRH questions anonymously through an AI chat assistant, with automatic language detection
 - Gives admins tools to manage publisher accounts and moderate published content
@@ -87,7 +87,7 @@ wambaza/
 
 The model pipeline:
 - Fine-tuned on the **HASH Multilingual Health QA Challenge** (Zindi / ITU, 2026) — a health-worker-validated corpus of ASRH question-answer pairs
-- Supports Kinyarwanda, Luganda, Swahili, and English
+- Supports Kinyarwanda, Luganda, and English
 - Deployed to HuggingFace Hub as `DianePretty/Wambaza_2.0`
 - Served via a Gradio Space for persistent, always-on inference
 
