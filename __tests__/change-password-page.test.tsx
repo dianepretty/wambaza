@@ -31,7 +31,7 @@ describe('Change password page', () => {
     await user.type(screen.getByPlaceholderText('Re-enter your new password'), 'weak')
     await user.click(screen.getByRole('button', { name: 'Continue' }))
 
-    expect(await screen.findByText(/at least 8 characters/i)).toBeInTheDocument()
+    expect(await screen.findByText('Password must be at least 8 characters long.')).toBeInTheDocument()
     expect(fetch).not.toHaveBeenCalled()
   })
 
