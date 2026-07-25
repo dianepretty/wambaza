@@ -1,6 +1,7 @@
 "use client"
 import React, { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import SiteHeader from '../../components/SiteHeader'
 
 type Message = { from: 'user' | 'bot'; text: string }
 
@@ -84,16 +85,7 @@ export default function Ask() {
       <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-orange-200 rounded-full blur-3xl opacity-30 pointer-events-none" />
       <div className="absolute top-1/3 right-0 w-72 h-72 bg-purple-100 rounded-full blur-3xl opacity-40 pointer-events-none" />
 
-      {/* Top nav */}
-      <header className="relative z-10 border-b bg-white/80 backdrop-blur-sm shrink-0">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2 text-2xl font-black text-purple-700 tracking-wide">
-            <svg className="w-6 h-6 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.3.3 0 1 0 .2.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg>
-            Wambaza
-          </a>
-          <a href="/" className="text-sm text-gray-500 hover:text-purple-600 transition-colors">← Back to home</a>
-        </div>
-      </header>
+      <SiteHeader className="relative z-10 border-b bg-white/80 backdrop-blur-sm shrink-0" />
 
       {/* Chat area — scroll container */}
       <main ref={chatRef} className="relative z-10 flex-1 min-h-0 overflow-y-auto">

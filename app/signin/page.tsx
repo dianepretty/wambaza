@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import loginImg from '../../assets/images/login.jpg'
+import { getPasswordStrengthError } from '../../lib/validation'
 
 type View = 'signin' | 'forgot-email' | 'forgot-otp' | 'forgot-newpassword' | 'reset-done'
 
@@ -108,6 +109,11 @@ export default function SignIn() {
   async function handleResetPassword(e: { preventDefault(): void }) {
     e.preventDefault()
     setError('')
+    const strengthError = getPasswordStrengthError(newPassword)
+    if (strengthError) {
+      setError(strengthError)
+      return
+    }
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match.')
       return
@@ -411,6 +417,9 @@ export default function SignIn() {
                       <EyeIcon open={showNewPassword} />
                     </button>
                   </div>
+                  <p className="mt-1.5 text-xs text-gray-400">
+                    At least 8 characters, with uppercase, lowercase, a digit, and a special character.
+                  </p>
                 </div>
 
                 <div>
@@ -444,7 +453,6 @@ export default function SignIn() {
             </>
           ) : (
             <>
-              <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center text-2xl mb-6">✅</div>
               <h1 className="text-3xl font-bold text-gray-900">Password reset</h1>
               <p className="mt-2 text-sm text-gray-500">
                 Your password has been updated. You can now sign in with your new password.

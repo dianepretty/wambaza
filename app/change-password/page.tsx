@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import loginImg from '../../assets/images/login.jpg'
+import { getPasswordStrengthError } from '../../lib/validation'
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
@@ -29,6 +30,11 @@ export default function ChangePassword() {
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault()
     setError('')
+    const strengthError = getPasswordStrengthError(newPassword)
+    if (strengthError) {
+      setError(strengthError)
+      return
+    }
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match.')
       return
@@ -164,6 +170,9 @@ export default function ChangePassword() {
                   <EyeIcon open={showPassword} />
                 </button>
               </div>
+              <p className="mt-1.5 text-xs text-gray-400">
+                At least 8 characters, with uppercase, lowercase, a digit, and a special character.
+              </p>
             </div>
 
             <div>

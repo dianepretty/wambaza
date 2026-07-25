@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import ArticlePreviewModal from '../../components/ArticlePreviewModal'
+import DashboardSidebar from '../../components/DashboardSidebar'
 
 const API = process.env.NEXT_PUBLIC_API_URL
 
@@ -30,9 +31,19 @@ type Article = {
   updated_at: string
 }
 
-type View = 'publishers' | 'articles'
+type Feedback = {
+  id: number
+  type: 'articles' | 'chat'
+  message: string
+  chat_question?: string | null
+  chat_answer?: string | null
+  created_at: string
+}
+
+type View = 'publishers' | 'articles' | 'feedback'
 type ArticleStatusFilter = 'all' | 'published' | 'draft' | 'archived'
-type ModalMode = 'create' | 'edit' | 'confirm-deactivate' | 'confirm-unpublish' | 'preview-article' | null
+type FeedbackTypeFilter = 'all' | 'articles' | 'chat'
+type ModalMode = 'create' | 'edit' | 'confirm-deactivate' | 'confirm-unpublish' | 'preview-article' | 'preview-feedback' | null
 
 function initials(name: string) {
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
@@ -80,6 +91,11 @@ export default function AdminDashboard() {
   const [articleSearch, setArticleSearch] = useState('')
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null)
 
+  const [feedback, setFeedback] = useState<Feedback[]>([])
+  const [feedbackLoading, setFeedbackLoading] = useState(true)
+  const [feedbackTypeFilter, setFeedbackTypeFilter] = useState<FeedbackTypeFilter>('all')
+  const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null)
+
   const router = useRouter()
 
   async function loadUsers() {
@@ -101,9 +117,20 @@ export default function AdminDashboard() {
     }
   }
 
+  async function loadFeedback() {
+    setFeedbackLoading(true)
+    try {
+      const res = await fetch(`${API}/feedback`, { credentials: 'include' })
+      if (res.ok) setFeedback(await res.json())
+    } finally {
+      setFeedbackLoading(false)
+    }
+  }
+
   useEffect(() => {
     loadUsers()
     loadArticles()
+    loadFeedback()
     // Verify access in the background; redirect away if not an admin, but don't block rendering.
     fetch(`${API}/auth/me`, { credentials: 'include' })
       .then(res => {
@@ -132,7 +159,12 @@ export default function AdminDashboard() {
     setSelected(user); setModal('edit')
   }
 
-  function closeModal() { setModal(null); setSelected(null); setSelectedArticle(null) }
+  function closeModal() { setModal(null); setSelected(null); setSelectedArticle(null); setSelectedFeedback(null) }
+
+  function openFeedbackPreview(item: Feedback) {
+    setSelectedFeedback(item)
+    setModal('preview-feedback')
+  }
 
   async function handleCreate(e: { preventDefault(): void }) {
     e.preventDefault()
@@ -245,64 +277,44 @@ export default function AdminDashboard() {
   return (
     <div className="h-screen bg-gray-50 flex overflow-hidden">
 
-      {/* Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 bg-gradient-to-b from-purple-800 to-purple-950 shrink-0 shadow-xl shadow-purple-900/30 z-10">
-        <div className="px-6 py-6 border-b border-white/10">
-          <a href="/" className="flex items-center gap-2">
-            <svg className="w-7 h-7 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.3.3 0 1 0 .2.3"/>
-              <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/>
-              <circle cx="20" cy="10" r="2"/>
-            </svg>
-            <span className="text-xl font-black text-white tracking-wide">Wambaza</span>
-          </a>
-        </div>
-
-        <nav className="flex-1 px-3 py-5 space-y-1">
-          <div className="px-3 py-1.5 text-xs font-semibold text-purple-300/70 uppercase tracking-widest">Management</div>
-          <button
-            onClick={() => setView('publishers')}
-            className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-sm transition-colors ${
-              view === 'publishers' ? 'bg-white/10 text-white' : 'text-purple-200 hover:bg-white/5 hover:text-white'
-            }`}
-          >
-            {view === 'publishers' && <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-orange-400" />}
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m9-4a4 4 0 11-8 0 4 4 0 018 0zm6 4a2 2 0 100-4 2 2 0 000 4zM3 16a2 2 0 100-4 2 2 0 000 4z"/></svg>
-            Publishers
-          </button>
-          <button
-            onClick={() => setView('articles')}
-            className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-sm transition-colors ${
-              view === 'articles' ? 'bg-white/10 text-white' : 'text-purple-200 hover:bg-white/5 hover:text-white'
-            }`}
-          >
-            {view === 'articles' && <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-orange-400" />}
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            Articles
-          </button>
-          <a href="/admin/profile" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-purple-200 hover:bg-white/5 hover:text-white text-sm transition-colors">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-            Profile
-          </a>
-        </nav>
-
-        <div className="px-6 py-4 border-t border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white text-xs font-bold shrink-0">A</div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-white">Admin</div>
-              <div className="text-xs text-purple-300">Administrator</div>
-            </div>
-            <button
-              onClick={handleLogout}
-              title="Log out"
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-purple-300 hover:text-white hover:bg-white/10 transition-colors shrink-0"
-            >
-              <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-            </button>
-          </div>
-        </div>
-      </aside>
+      <DashboardSidebar
+        navGroups={[
+          {
+            label: 'Management',
+            items: [
+              {
+                key: 'publishers',
+                label: 'Publishers',
+                icon: 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m9-4a4 4 0 11-8 0 4 4 0 018 0zm6 4a2 2 0 100-4 2 2 0 000 4zM3 16a2 2 0 100-4 2 2 0 000 4z',
+                onClick: () => setView('publishers'),
+              },
+              {
+                key: 'articles',
+                label: 'Articles',
+                icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+                onClick: () => setView('articles'),
+              },
+              {
+                key: 'feedback',
+                label: 'Feedback',
+                icon: 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-6l-4 4v-4z',
+                onClick: () => setView('feedback'),
+              },
+              {
+                key: 'profile',
+                label: 'Profile',
+                icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
+                href: '/admin/profile',
+              },
+            ],
+          },
+        ]}
+        activeKey={view}
+        userInitial="A"
+        userName="Admin"
+        userRole="Administrator"
+        onLogout={handleLogout}
+      />
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
@@ -310,9 +322,15 @@ export default function AdminDashboard() {
         {/* Topbar */}
         <header className="bg-white border-b px-8 py-5 flex items-center justify-between gap-4 shadow-sm shrink-0">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{view === 'publishers' ? 'Publishers' : 'Articles'}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {view === 'publishers' ? 'Publishers' : view === 'articles' ? 'Articles' : 'Feedback'}
+            </h1>
             <p className="text-sm text-gray-500 mt-0.5">
-              {view === 'publishers' ? 'Manage who can write and publish articles' : 'Review and moderate published content'}
+              {view === 'publishers'
+                ? 'Manage who can write and publish articles'
+                : view === 'articles'
+                ? 'Review and moderate published content'
+                : 'See what visitors are saying about articles and the chat feature'}
             </p>
           </div>
           {view === 'publishers' && (
@@ -568,6 +586,90 @@ export default function AdminDashboard() {
               </div>
             )}
           </>}
+
+          {view === 'feedback' && <>
+            {/* Filter tabs */}
+            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl p-1.5 w-fit mb-6">
+              {(['all', 'articles', 'chat'] as FeedbackTypeFilter[]).map(key => (
+                <button
+                  key={key}
+                  onClick={() => setFeedbackTypeFilter(key)}
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold capitalize transition-colors ${
+                    feedbackTypeFilter === key ? 'bg-purple-600 text-white' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  {key === 'all' ? 'All' : key === 'articles' ? 'Articles' : 'Chat feature'}
+                  <span className={`text-xs ${feedbackTypeFilter === key ? 'text-purple-200' : 'text-gray-400'}`}>
+                    {key === 'all' ? feedback.length : feedback.filter(f => f.type === key).length}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <div className="bg-white rounded-2xl border overflow-hidden">
+              {feedbackLoading ? (
+                <div className="divide-y divide-gray-50">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="flex items-center gap-3 px-6 py-4 animate-pulse">
+                      <div className="h-6 bg-gray-100 rounded-full w-20 shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 bg-gray-200 rounded-full w-1/2" />
+                        <div className="h-2.5 bg-gray-100 rounded-full w-1/3" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : feedback.filter(f => feedbackTypeFilter === 'all' || f.type === feedbackTypeFilter).length === 0 ? (
+                <div className="p-12 text-center">
+                  <div className="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-6l-4 4v-4z" /></svg>
+                  </div>
+                  <p className="text-gray-500 text-sm">No feedback yet.</p>
+                </div>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                      <th className="text-left px-6 py-3 font-semibold">Type</th>
+                      <th className="text-left px-6 py-3 font-semibold">Message</th>
+                      <th className="text-left px-6 py-3 font-semibold">Received</th>
+                      <th className="text-right px-6 py-3 font-semibold">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {feedback
+                      .filter(f => feedbackTypeFilter === 'all' || f.type === feedbackTypeFilter)
+                      .map(item => (
+                        <tr key={item.id} className="hover:bg-gray-50/80 transition-colors group">
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${
+                              item.type === 'chat' ? 'bg-purple-50 text-purple-700' : 'bg-amber-50 text-amber-700'
+                            }`}>
+                              {item.type === 'chat' ? 'Chat feature' : 'Articles'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-gray-700 max-w-md truncate">{item.message}</td>
+                          <td className="px-6 py-4 text-gray-400 text-xs">
+                            {new Date(item.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-end opacity-70 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => openFeedbackPreview(item)}
+                                title="View"
+                                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:text-purple-700 hover:bg-purple-50 transition-colors"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </>}
         </main>
       </div>
 
@@ -709,6 +811,57 @@ export default function AdminDashboard() {
       {/* Article Preview Modal */}
       {modal === 'preview-article' && selectedArticle && (
         <ArticlePreviewModal article={selectedArticle} onClose={closeModal} />
+      )}
+
+      {/* Feedback Preview Modal */}
+      {modal === 'preview-feedback' && selectedFeedback && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeModal} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-6l-4 4v-4z" /></svg>
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">{selectedFeedback.type === 'chat' ? 'Chat feature feedback' : 'Articles feedback'}</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {new Date(selectedFeedback.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              </div>
+              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 transition-colors shrink-0">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+              {selectedFeedback.type === 'chat' && (
+                <>
+                  <div>
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Question asked</div>
+                    <p className="text-sm text-gray-700 bg-gray-50 rounded-xl p-4 whitespace-pre-wrap">{selectedFeedback.chat_question}</p>
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Chat's answer</div>
+                    <p className="text-sm text-gray-700 bg-gray-50 rounded-xl p-4 whitespace-pre-wrap">{selectedFeedback.chat_answer}</p>
+                  </div>
+                </>
+              )}
+              <div>
+                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Feedback message</div>
+                <p className="text-sm text-gray-700 bg-purple-50 rounded-xl p-4 whitespace-pre-wrap">{selectedFeedback.message}</p>
+              </div>
+            </div>
+
+            <button
+              onClick={closeModal}
+              className="mt-6 w-full border border-gray-200 text-gray-600 font-semibold py-2.5 rounded-xl text-sm hover:border-gray-300 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Toast */}
