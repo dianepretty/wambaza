@@ -3,7 +3,13 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import SiteHeader from '../../components/SiteHeader'
 
-type Message = { from: 'user' | 'bot'; text: string }
+type Message = {
+  from: 'user' | 'bot'
+  text: string
+  confidenceLabel?: string | null
+  confidenceScore?: number | null
+  disclaimer?: string | null
+}
 
 const SUGGESTIONS = [
   { q: 'What is puberty?', icon: 'M5 13l4 4L19 7' },
@@ -16,6 +22,19 @@ const TRUST_BADGES = [
   { label: 'Private & anonymous', icon: 'M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z' },
   { label: 'KIN · LUG · EN', icon: 'M21 12a9 9 0 11-18 0 9 9 0 0118 0zM3.6 9h16.8M3.6 15h16.8M11.5 3a17 17 0 000 18M12.5 3a17 17 0 010 18' },
 ]
+
+function confidenceStyle(label?: string | null) {
+  switch ((label || '').toLowerCase()) {
+    case 'high':
+      return 'bg-green-50 text-green-700 border-green-200'
+    case 'medium':
+      return 'bg-amber-50 text-amber-700 border-amber-200'
+    case 'low':
+      return 'bg-red-50 text-red-700 border-red-200'
+    default:
+      return 'bg-gray-50 text-gray-500 border-gray-200'
+  }
+}
 
 function BotAvatar() {
   return (
@@ -64,7 +83,13 @@ export default function Ask() {
         body: JSON.stringify({ question: q, language: 'auto' }),
       })
       const data = await res.json()
-      setMessages(prev => [...prev, { from: 'bot', text: data.answer }])
+      setMessages(prev => [...prev, {
+        from: 'bot',
+        text: data.answer,
+        confidenceLabel: data.confidence_label,
+        confidenceScore: data.confidence_score,
+        disclaimer: data.disclaimer,
+      }])
     } catch {
       setMessages(prev => [...prev, { from: 'bot', text: "Sorry, something went wrong. Please try again." }])
     } finally {
@@ -137,6 +162,17 @@ export default function Ask() {
                   }`}
                 >
                   {m.text}
+                  {m.from === 'bot' && m.confidenceLabel && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full border ${confidenceStyle(m.confidenceLabel)}`}>
+                        Confidence: {m.confidenceLabel}
+                        {typeof m.confidenceScore === 'number' && ` (${Math.round(m.confidenceScore * 100)}%)`}
+                      </span>
+                    </div>
+                  )}
+                  {m.from === 'bot' && m.disclaimer && (
+                    <p className="mt-1.5 text-[11px] text-gray-400 italic">{m.disclaimer}</p>
+                  )}
                 </div>
               </div>
             ))}
