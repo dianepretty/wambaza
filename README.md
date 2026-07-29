@@ -39,7 +39,7 @@ This repo is the **frontend** (Next.js 14 + Tailwind). The API lives in the [bac
 
 ## Screenshots
 
-<img src="assets/screenshots/Screenshot%202026-07-07%20at%209.18.33%20PM.png" width="250" /> <img src="assets/screenshots/Screenshot%202026-07-07%20at%209.19.02%20PM.png" width="250" /> <img src="assets/screenshots/Screenshot%202026-07-07%20at%209.19.26%20PM.png" width="250" /> <img src="assets/screenshots/Screenshot%202026-07-07%20at%209.22.18%20PM.png" width="250" /> <img src="assets/screenshots/Screenshot%202026-07-07%20at%209.23.12%20PM.png" width="250" /> <img src="assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48%20%282%29.jpeg" width="150" /> <img src="assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48%20%283%29.jpeg" width="150" /> <img src="assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48.jpeg" width="150" /> <img src="assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48%20%281%29.jpeg" width="150" />
+<img src="assets/screenshots/Screenshot%202026-07-07%20at%209.18.33%20PM.png" width="250" /> <img src="assets/screenshots/Screenshot%202026-07-07%20at%209.19.02%20PM.png" width="250" /> <img src="assets/screenshots/Screenshot%202026-07-07%20at%209.19.26%20PM.png" width="250" /> <img src="assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48%20%282%29.jpeg" width="150" /> <img src="assets/screenshots/WhatsApp%20Image%202026-07-07%20at%2021.30.48%20%283%29.jpeg" width="150" /> <img src="assets/screenshots/Articles.png" width="150" /> <img src="assets/screenshots/Ask_model.png" width="150" /> <img src="assets/screenshots/image.png" width="150" />
 
 ## Local setup
 
@@ -112,7 +112,7 @@ The model pipeline:
 - [Backend repo](https://github.com/dianepretty/wambaza_backend)
 - [HuggingFace Model](https://huggingface.co/DianePretty/Wambaza_2.0)
 - [HuggingFace Space](https://huggingface.co/spaces/DianePretty/Wambaza-API)
-- [YouTube demo](https://youtu.be/vKweA_lksHQ)
+- [YouTube demo](https://drive.google.com/file/d/1fpeVSF9pSm_iK9ZtTckLbbv82qo6LggB/view?usp=sharing)
 
 ## Author
 
