@@ -206,6 +206,7 @@ export default function Home() {
           </div>
           <div className="mt-10 border-t border-gray-200 pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-gray-400">
             <span>© {new Date().getFullYear()} Wambaza. All rights reserved.</span>
+            <a href="/terms" className="hover:text-purple-700">Terms &amp; Privacy Policy</a>
             <span className="flex items-center gap-1">Made with <span className="text-orange-400">♥</span> for adolescents everywhere</span>
           </div>
         </div>
